@@ -1,0 +1,133 @@
+spot_mode: false
+persistent_storage_path: "/persistent"
+
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed_k_hop_1"
+  checkpoints: "data/checkpoints"
+  results: "data/results"
+  sample_ratio: 1
+  k_hop: 1
+
+  columns:
+    nodes:
+      node_id: "clId"
+      subgraph_id: "ccId"
+    edges:
+      source: "clId1"
+      target: "clId2"
+      txId: "txId"
+    components:
+      subgraph_id: "ccId"
+      label: "ccLabel"
+    background_nodes:
+      node_id: "clId"
+    background_edges:
+      txId: "txId"
+      source: "clId1"
+      target: "clId2"
+
+model:
+  hidden_dim: 128
+  num_layers: 3
+  heads: 4
+  edge_proj_dim: 32
+  dropout: 0.4
+  num_classes: 2
+  expansion_node_weight: 0.5
+
+training:
+  epochs: 300
+  batch_size: 256
+  learning_rate: 0.001
+  warmup_epochs: 5
+  weight_decay: 0.0001
+  lr_schedule: "cosine"
+  lr_patience: 15
+  lr_factor: 0.5
+  early_stop_patience: 40
+  cost_matrix:
+    fn_cost: 25.0
+    fp_cost: 1.0
+
+  label_smoothing: 0.05
+  calibration: true
+
+  class_weighting: false
+  oversampling: false
+  balanced_sampling: true
+
+  seeds: [42, 123, 456]
+
+  val_ratio: 0.15
+  test_ratio: 0.10
+
+  checkpoint_dir: "checkpoints"
+  save_every: 1
+
+device: "cuda"
+
+pgd_attack:
+  seed: 42
+  epsilons: [0.01, 0.05, 0.1, 0.2, 0.5]
+  steps: 40
+  restarts: 5
+  step_size: null
+  conv_types: [gatv2, sage, sage_edge, gin]
+  output: "data/results/pgd_attack_results.json"
+
+zoo_attack:
+  seed: 42
+  epsilons: [0.05, 0.1, 0.2]
+  delta: 0.01
+  subspace_dim: 10
+  step_size: 0.01
+  max_queries: 2000
+  query_budgets: [100, 250, 500, 1000, 2000]
+  conv_types: [gatv2, sage, sage_edge, gin]
+  output: "data/results/zoo_attack_results.json"
+
+node_injection_attack:
+  seed: 42
+  k_nodes: [1, 3, 5, 10]
+  connections_per_node: [1, 2, 3]
+  strategies: [random, degree, mimicry]
+  conv_types: [gatv2, sage, sage_edge, gin]
+  output: "data/results/node_injection_results.json"
+
+topology_rewiring_attack:
+  seed: 42
+  techniques: [chain_injection, star, parallel]
+  k_intermediates: [2, 5, 10]
+  conv_types: [gatv2, sage, sage_edge, gin]
+  output: "data/results/topology_rewiring_results.json"
+
+saliency_attack:
+  seed: 42
+  epsilons: [0.1, 0.2]
+  steps: 40
+  restarts: 5
+  top_k_values: [3, 5, 10, 20, 43]
+  saliency_n_samples: 500
+  ig_n_steps: 50
+  ig_n_samples: 200
+  ablation_n_samples: 200
+  skip_ablation: false
+  conv_types: [gatv2, sage, sage_edge, gin]
+  output: "data/results/saliency_attack_results.json"
+  plots_dir: "data/results/plots/saliency"
+
+transfer_attack:
+  seed: 42
+  epsilons: [0.05, 0.1, 0.2]
+  steps: 40
+  restarts: 5
+  step_size: null
+  surrogate_hidden_dim: 128
+  surrogate_dropout: 0.3
+  surrogate_epochs: 50
+  surrogate_lr: 0.001
+  surrogate_batch_size: 256
+  surrogate_checkpoint: "checkpoints/surrogate_gcn.pt"
+  cross_arch: true
+  output: "data/results/transfer_attack_results.json"
